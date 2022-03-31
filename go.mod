@@ -1,3 +1,3 @@
-module luda.farm/libs
+module github.com/luda-farm/libs
 
 go 1.18
