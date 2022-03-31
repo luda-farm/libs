@@ -7,7 +7,6 @@ import (
 
 type (
 	Message struct {
-		Sender     string
 		Recipients []string
 		Subject    string
 		Body       string
@@ -32,12 +31,12 @@ func (msg Message) Send() error {
 		password: Password,
 	}
 	body := "MIME-version: 1.0\n" + `Content-Type: text/html; charset="UTF-8";` + "\r\n"
-	body += fmt.Sprintf("From: %s\r\n", msg.Sender)
-	body += fmt.Sprintf("To: %s\r\n", msg.Sender)
+	body += fmt.Sprintf("From: %s\r\n", Username)
+	body += fmt.Sprintf("To: %s\r\n", Username)
 	body += fmt.Sprintf("Subject: %s\r\n", msg.Subject)
 	body += fmt.Sprintf("\r\n%s\r\n", msg.Body)
 	fmt.Println(addr)
-	return smtp.SendMail(addr, auth, msg.Sender, msg.Recipients, []byte(body))
+	return smtp.SendMail(addr, auth, Username, msg.Recipients, []byte(body))
 }
 
 func (auth loginAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
