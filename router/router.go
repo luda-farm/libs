@@ -11,25 +11,25 @@ import (
 type (
 	Handler func(ctx Context)
 
-	handlerGroup struct {
-		delete, get, post, put Handler
-	}
-
-	router struct {
+	Router struct {
 		allowedOrigins []string
 		handlers       map[string]*handlerGroup
 	}
+
+	handlerGroup struct {
+		delete, get, post, put Handler
+	}
 )
 
-func New() router {
-	return router{handlers: make(map[string]*handlerGroup)}
+func New() Router {
+	return Router{handlers: make(map[string]*handlerGroup)}
 }
 
-func (r *router) AllowOrigin(origin string) {
+func (r *Router) AllowOrigin(origin string) {
 	r.allowedOrigins = append(r.allowedOrigins, origin)
 }
 
-func (r *router) Delete(pattern string, handler Handler) {
+func (r *Router) Delete(pattern string, handler Handler) {
 	if handlers, ok := r.handlers[pattern]; ok {
 		handlers.delete = handler
 	} else {
@@ -37,7 +37,7 @@ func (r *router) Delete(pattern string, handler Handler) {
 	}
 }
 
-func (r *router) Get(pattern string, handler Handler) {
+func (r *Router) Get(pattern string, handler Handler) {
 	if group, ok := r.handlers[pattern]; ok {
 		group.get = handler
 	} else {
@@ -45,7 +45,7 @@ func (r *router) Get(pattern string, handler Handler) {
 	}
 }
 
-func (r *router) Post(pattern string, handler Handler) {
+func (r *Router) Post(pattern string, handler Handler) {
 	if handlers, ok := r.handlers[pattern]; ok {
 		handlers.post = handler
 	} else {
@@ -53,7 +53,7 @@ func (r *router) Post(pattern string, handler Handler) {
 	}
 }
 
-func (r *router) Put(pattern string, handler Handler) {
+func (r *Router) Put(pattern string, handler Handler) {
 	if handlers, ok := r.handlers[pattern]; ok {
 		handlers.put = handler
 	} else {
@@ -61,7 +61,7 @@ func (r *router) Put(pattern string, handler Handler) {
 	}
 }
 
-func (r router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+func (r Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	defer panicRecovery(res)
 	for pattern, group := range r.handlers {
 		matches, params := matchPattern(pattern, req.URL.Path)
