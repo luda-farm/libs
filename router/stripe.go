@@ -16,7 +16,7 @@ type (
 		router *Router
 	}
 	StripeEventRouterConfig struct {
-		Host, GcpProject, GcpLocation, StripeWebhookSecret string
+		GcpProject, GcpLocation, StripeWebhookSecret string
 	}
 )
 
@@ -35,6 +35,7 @@ func NewStripeEventRouter(router *Router, config StripeEventRouterConfig) Stripe
 			return
 		}
 
+		url := "https://" + ctx.Request.Host + pathFromEvent(event.Type)
 		task := tasks.CreateTaskRequest{
 			Parent: fmt.Sprintf(
 				"projects/%s/locations/%s/queues/stripe-events",
@@ -44,7 +45,7 @@ func NewStripeEventRouter(router *Router, config StripeEventRouterConfig) Stripe
 				MessageType: &tasks.Task_HttpRequest{
 					HttpRequest: &tasks.HttpRequest{
 						HttpMethod: tasks.HttpMethod_POST,
-						Url:        config.Host + pathFromEvent(event.Type),
+						Url:        url,
 						Body:       event.Data.Raw,
 					},
 				},
