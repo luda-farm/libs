@@ -16,7 +16,7 @@ type (
 		router *Router
 	}
 	StripeEventRouterConfig struct {
-		host, gcpProject, gcpLocation, stripeWebhookSecret string
+		Host, GcpProject, GcpLocation, StripeWebhookSecret string
 	}
 )
 
@@ -29,7 +29,7 @@ func NewStripeEventRouter(router *Router, config StripeEventRouterConfig) Stripe
 	router.Post("/stripe/events", func(ctx Context) {
 		payload := ctx.RawRequestBody()
 		signature := ctx.Request.Header.Get("Stripe-Signature")
-		event, err := webhook.ConstructEvent(payload, signature, config.stripeWebhookSecret)
+		event, err := webhook.ConstructEvent(payload, signature, config.StripeWebhookSecret)
 		if err != nil {
 			ctx.Response.WriteHeader(http.StatusUnauthorized)
 			return
@@ -38,13 +38,13 @@ func NewStripeEventRouter(router *Router, config StripeEventRouterConfig) Stripe
 		task := tasks.CreateTaskRequest{
 			Parent: fmt.Sprintf(
 				"projects/%s/locations/%s/queues/stripe-events",
-				config.gcpProject, config.gcpLocation,
+				config.GcpProject, config.GcpLocation,
 			),
 			Task: &tasks.Task{
 				MessageType: &tasks.Task_HttpRequest{
 					HttpRequest: &tasks.HttpRequest{
 						HttpMethod: tasks.HttpMethod_POST,
-						Url:        config.host + pathFromEvent(event.Type),
+						Url:        config.Host + pathFromEvent(event.Type),
 						Body:       event.Data.Raw,
 					},
 				},
