@@ -69,12 +69,13 @@ func (r Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 			continue
 		}
 
-		res.Header().Add("Vary", "Origin")
-		res.Header().Add("Access-Control-Allow-Methods", group.allowedMethods())
-		res.Header().Add("Access-Control-Allow-Headers", "Authorization")
+		res.Header().Add("vary", "origin")
+		res.Header().Add("access-control-allow-methods", group.allowedMethods())
+		res.Header().Add("access-control-allow-headers", "authorization")
+		res.Header().Add("access-control-allow-headers", "content-type")
 		for _, origin := range r.allowedOrigins {
-			if origin == "*" || origin == req.Header.Get("Origin") {
-				res.Header().Add("Access-Control-Allow-Origin", origin)
+			if origin == "*" || origin == req.Header.Get("origin") {
+				res.Header().Add("access-control-allow-origin", origin)
 				break
 			}
 		}
