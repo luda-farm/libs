@@ -69,7 +69,7 @@ func (r Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 			continue
 		}
 
-		res.Header().Add("Vary", "Access-Control-Allow-Origin")
+		res.Header().Add("Vary", "Origin")
 		res.Header().Add("Access-Control-Allow-Methods", group.allowedMethods())
 		res.Header().Add("Access-Control-Allow-Headers", "Authorization")
 		for _, origin := range r.allowedOrigins {
