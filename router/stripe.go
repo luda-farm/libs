@@ -12,15 +12,12 @@ import (
 )
 
 type (
-	StripeEventRouter struct {
-		router *Router
-	}
-	StripeEventRouterConfig struct {
+	StripeEventHandlingConfig struct {
 		GcpProject, GcpLocation, StripeWebhookSecret string
 	}
 )
 
-func NewStripeEventRouter(router *Router, config StripeEventRouterConfig) StripeEventRouter {
+func (router *Router) InitStripeEventHandling(config StripeEventHandlingConfig) {
 	client, err := cloudtasks.NewClient(context.Background())
 	if err != nil {
 		panic(err)
@@ -58,16 +55,12 @@ func NewStripeEventRouter(router *Router, config StripeEventRouterConfig) Stripe
 
 		ctx.Response.WriteHeader(http.StatusNoContent)
 	})
-
-	return StripeEventRouter{
-		router: router,
-	}
 }
 
 func pathFromEvent(event string) string {
 	return "/stripe/" + strings.Join(strings.Split(event, "."), "/")
 }
 
-func (router StripeEventRouter) Handle(event string, handler Handler) {
-	router.router.Post(pathFromEvent(event), handler)
+func (router *Router) HandleStripeEvent(event string, handler Handler) {
+	router.Post(pathFromEvent(event), handler)
 }

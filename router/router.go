@@ -25,45 +25,45 @@ func New() Router {
 	return Router{handlers: make(map[string]*handlerGroup)}
 }
 
-func (r *Router) AllowOrigin(origin string) {
-	r.allowedOrigins = append(r.allowedOrigins, origin)
+func (router *Router) AllowOrigin(origin string) {
+	router.allowedOrigins = append(router.allowedOrigins, origin)
 }
 
-func (r *Router) Delete(pattern string, handler Handler) {
-	if handlers, ok := r.handlers[pattern]; ok {
+func (router *Router) Delete(pattern string, handler Handler) {
+	if handlers, ok := router.handlers[pattern]; ok {
 		handlers.delete = handler
 	} else {
-		r.handlers[pattern] = &handlerGroup{delete: handler}
+		router.handlers[pattern] = &handlerGroup{delete: handler}
 	}
 }
 
-func (r *Router) Get(pattern string, handler Handler) {
-	if group, ok := r.handlers[pattern]; ok {
+func (router *Router) Get(pattern string, handler Handler) {
+	if group, ok := router.handlers[pattern]; ok {
 		group.get = handler
 	} else {
-		r.handlers[pattern] = &handlerGroup{get: handler}
+		router.handlers[pattern] = &handlerGroup{get: handler}
 	}
 }
 
-func (r *Router) Post(pattern string, handler Handler) {
-	if handlers, ok := r.handlers[pattern]; ok {
+func (router *Router) Post(pattern string, handler Handler) {
+	if handlers, ok := router.handlers[pattern]; ok {
 		handlers.post = handler
 	} else {
-		r.handlers[pattern] = &handlerGroup{post: handler}
+		router.handlers[pattern] = &handlerGroup{post: handler}
 	}
 }
 
-func (r *Router) Put(pattern string, handler Handler) {
-	if handlers, ok := r.handlers[pattern]; ok {
+func (router *Router) Put(pattern string, handler Handler) {
+	if handlers, ok := router.handlers[pattern]; ok {
 		handlers.put = handler
 	} else {
-		r.handlers[pattern] = &handlerGroup{put: handler}
+		router.handlers[pattern] = &handlerGroup{put: handler}
 	}
 }
 
-func (r Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+func (router Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	defer panicRecovery(res)
-	for pattern, group := range r.handlers {
+	for pattern, group := range router.handlers {
 		matches, params := matchPattern(pattern, req.URL.Path)
 		if !matches {
 			continue
@@ -73,7 +73,7 @@ func (r Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		res.Header().Add("access-control-allow-methods", group.allowedMethods())
 		res.Header().Add("access-control-allow-headers", "authorization")
 		res.Header().Add("access-control-allow-headers", "content-type")
-		for _, origin := range r.allowedOrigins {
+		for _, origin := range router.allowedOrigins {
 			if origin == "*" || origin == req.Header.Get("origin") {
 				res.Header().Add("access-control-allow-origin", origin)
 				break
