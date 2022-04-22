@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	cloudtasks "cloud.google.com/go/cloudtasks/apiv2"
+	"github.com/luda-farm/libs/assert"
 	"github.com/stripe/stripe-go/v72/webhook"
 	"google.golang.org/genproto/googleapis/cloud/tasks/v2"
 )
@@ -18,10 +19,7 @@ type (
 )
 
 func (router *Router) InitStripeEventHandling(config StripeEventHandlingConfig) {
-	client, err := cloudtasks.NewClient(context.Background())
-	if err != nil {
-		panic(err)
-	}
+	client := assert.Must(cloudtasks.NewClient(context.Background()))
 
 	router.Post("/stripe/events", func(ctx Context) {
 		payload := ctx.RawRequestBody()
@@ -49,10 +47,7 @@ func (router *Router) InitStripeEventHandling(config StripeEventHandlingConfig) 
 			},
 		}
 
-		if _, err := client.CreateTask(context.Background(), &task); err != nil {
-			panic(err)
-		}
-
+		assert.Must(client.CreateTask(context.Background(), &task))
 		ctx.Response.WriteHeader(http.StatusNoContent)
 	})
 }

@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/luda-farm/libs/assert"
 )
 
 type (
@@ -16,16 +18,11 @@ type (
 )
 
 func (ctx Context) RawRequestBody() []byte {
-	data, err := ioutil.ReadAll(ctx.Request.Body)
-	if err != nil {
-		panic(err)
-	}
-	return data
+	return assert.Must(ioutil.ReadAll(ctx.Request.Body))
 }
 
-func (ctx Context) JsonRequestBody(body interface{}) bool {
-	err := json.Unmarshal(ctx.RawRequestBody(), body)
-	return err == nil
+func (ctx Context) JsonRequestBody(body any) bool {
+	return json.Unmarshal(ctx.RawRequestBody(), body) == nil
 }
 
 func (ctx Context) BearerToken() string {
@@ -34,19 +31,30 @@ func (ctx Context) BearerToken() string {
 
 func (ctx Context) WriteCsv(body []byte) {
 	ctx.Response.Header().Set("Content-Type", "text/csv; charset=UTF-8")
-	ctx.Response.Write(body)
+	assert.Must(ctx.Response.Write(body))
 }
 
-func (ctx Context) WriteJson(body interface{}) {
-	ctx.Response.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	data, err := json.Marshal(body)
-	if err != nil {
-		panic(err)
+func (ctx Context) WriteError(status int, msg string) {
+	if status < 400 || status > 599 {
+		panic("call to 'Context.WriteError' with non-error status code")
 	}
-	ctx.Response.Write(data)
+	ctx.Response.WriteHeader(status)
+	ctx.WriteJson(struct {
+		Status  int
+		Message string
+	}{
+		Status:  status,
+		Message: msg,
+	})
+}
+
+func (ctx Context) WriteJson(body any) {
+	ctx.Response.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	data := assert.Must(json.Marshal(body))
+	assert.Must(ctx.Response.Write(data))
 }
 
 func (ctx Context) WriteZip(body []byte) {
 	ctx.Response.Header().Set("Content-Type", "application/zip")
-	ctx.Response.Write(body)
+	assert.Must(ctx.Response.Write(body))
 }
