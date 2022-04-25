@@ -6,10 +6,10 @@ import (
 )
 
 type (
-	Message struct {
-		Recipients []string
-		Subject    string
-		Body       string
+	message struct {
+		subject    string
+		body       string
+		recipients []string
 	}
 
 	loginAuth struct {
@@ -24,7 +24,15 @@ var (
 	Password string
 )
 
-func (msg Message) Send() error {
+func NewMessage(subject, body, recipient string, additionalRecipients ...string) message {
+	return message{
+		subject:    subject,
+		body:       body,
+		recipients: append(additionalRecipients, recipient),
+	}
+}
+
+func (msg message) Send() error {
 	addr := fmt.Sprintf("%s:%d", Host, Port)
 	auth := loginAuth{
 		username: Username,
@@ -33,10 +41,9 @@ func (msg Message) Send() error {
 	body := "MIME-version: 1.0\n" + `Content-Type: text/html; charset="UTF-8";` + "\r\n"
 	body += fmt.Sprintf("From: %s\r\n", Username)
 	body += fmt.Sprintf("To: %s\r\n", Username)
-	body += fmt.Sprintf("Subject: %s\r\n", msg.Subject)
-	body += fmt.Sprintf("\r\n%s\r\n", msg.Body)
-	fmt.Println(addr)
-	return smtp.SendMail(addr, auth, Username, msg.Recipients, []byte(body))
+	body += fmt.Sprintf("Subject: %s\r\n", msg.subject)
+	body += fmt.Sprintf("\r\n%s\r\n", msg.body)
+	return smtp.SendMail(addr, auth, Username, msg.recipients, []byte(body))
 }
 
 func (auth loginAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
