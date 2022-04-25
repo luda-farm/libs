@@ -17,20 +17,30 @@ type (
 	}
 )
 
-func (ctx Context) RawRequestBody() []byte {
+func (ctx Context) BearerToken() string {
+	return strings.TrimPrefix(ctx.Request.Header.Get("authorization"), "Bearer ")
+}
+
+func (ctx Context) ReadBytes() []byte {
 	return assert.Must(ioutil.ReadAll(ctx.Request.Body))
 }
 
-func (ctx Context) JsonRequestBody(body any) bool {
-	return json.Unmarshal(ctx.RawRequestBody(), body) == nil
-}
+// Writes error to context on failure
+func (ctx Context) ReadJson(body any) bool {
+	if !strings.HasPrefix(ctx.Request.Header.Get("content-type"), "application/json") {
+		ctx.WriteError(http.StatusBadRequest, "expected content-type application/json")
+		return false
+	}
 
-func (ctx Context) BearerToken() string {
-	return strings.TrimPrefix(ctx.Request.Header.Get("Authorization"), "Bearer ")
+	if json.Unmarshal(ctx.ReadBytes(), body) != nil {
+		ctx.WriteError(http.StatusBadRequest, "failed to parse json")
+		return false
+	}
+	return true
 }
 
 func (ctx Context) WriteCsv(body []byte) {
-	ctx.Response.Header().Set("Content-Type", "text/csv; charset=UTF-8")
+	ctx.Response.Header().Set("content-type", "text/csv; charset=UTF-8")
 	assert.Must(ctx.Response.Write(body))
 }
 

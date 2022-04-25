@@ -22,7 +22,7 @@ func (router *Router) InitStripeEventHandling(config StripeEventHandlingConfig) 
 	client := assert.Must(cloudtasks.NewClient(context.Background()))
 
 	router.Post("/stripe/events", func(ctx Context) {
-		payload := ctx.RawRequestBody()
+		payload := ctx.ReadBytes()
 		signature := ctx.Request.Header.Get("Stripe-Signature")
 		event, err := webhook.ConstructEvent(payload, signature, config.StripeWebhookSecret)
 		if err != nil {
