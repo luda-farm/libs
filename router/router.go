@@ -2,14 +2,22 @@ package router
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"regexp"
 	"runtime/debug"
 	"strings"
+	"time"
+)
+
+const (
+	Retry   = -1
+	retries = 2
 )
 
 type (
-	Handler func(ctx Context)
+	// Return status < 100 to trigger a retry
+	Handler func(ctx Context) int
 
 	Router struct {
 		allowedOrigins []string
@@ -69,13 +77,19 @@ func (router Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 			continue
 		}
 
-		res.Header().Add("vary", "origin")
-		res.Header().Add("access-control-allow-methods", group.allowedMethods())
-		res.Header().Add("access-control-allow-headers", "authorization")
-		res.Header().Add("access-control-allow-headers", "content-type")
+		ctx := Context{
+			request:  req,
+			response: res,
+			Params:   params,
+		}
+
+		// Handle CORS
+		ctx.WriteHeader("vary", "origin")
+		ctx.WriteHeader("access-control-allow-methods", group.allowedMethods())
+		ctx.WriteHeader("access-control-allow-headers", "authorization, content-type")
 		for _, origin := range router.allowedOrigins {
-			if origin == "*" || origin == req.Header.Get("origin") {
-				res.Header().Add("access-control-allow-origin", origin)
+			if origin == "*" || origin == ctx.ReadHeader("origin") {
+				ctx.WriteHeader("access-control-allow-origin", origin)
 				break
 			}
 		}
@@ -90,13 +104,20 @@ func (router Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 			break
 		}
 
-		ctx := Context{
-			Request:  req,
-			Response: res,
-			Params:   params,
+		for i := 0; i < retries; i++ {
+			status := handler(ctx)
+			if status == Retry {
+				// random back off up to 100 ms
+				time.Sleep(time.Duration(rand.Intn(1e8)))
+				continue
+			}
+
+			res.WriteHeader(status)
+			if status != http.StatusNoContent {
+				res.Write(ctx.body)
+			}
+			return
 		}
-		handler(ctx)
-		return
 	}
 	res.WriteHeader(http.StatusNotFound)
 }
