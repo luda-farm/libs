@@ -2,7 +2,7 @@ package router
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 
@@ -11,7 +11,7 @@ import (
 
 type (
 	Context struct {
-		request  *http.Request
+		Request  *http.Request
 		response http.ResponseWriter
 		body     []byte
 		Params   map[string]string
@@ -19,19 +19,15 @@ type (
 )
 
 func (ctx Context) BearerToken() string {
-	return strings.TrimPrefix(ctx.request.Header.Get("authorization"), "Bearer ")
+	return strings.TrimPrefix(ctx.Request.Header.Get("authorization"), "Bearer ")
 }
 
-func (ctx Context) ReadHeader(key string) string {
-	return ctx.request.Header.Get(key)
+func (ctx Context) RequestBodyAsBytes() []byte {
+	return assert.Must(io.ReadAll(ctx.Request.Body))
 }
 
-func (ctx Context) ReadBytes() []byte {
-	return assert.Must(ioutil.ReadAll(ctx.request.Body))
-}
-
-func (ctx Context) ReadJson(body any) bool {
-	return nil == json.Unmarshal(ctx.ReadBytes(), body)
+func (ctx Context) RequestBodyAsJson(body any) bool {
+	return nil == json.Unmarshal(ctx.RequestBodyAsBytes(), body)
 }
 
 func (ctx *Context) WriteCsv(body []byte) {

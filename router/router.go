@@ -78,7 +78,7 @@ func (router Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		}
 
 		ctx := Context{
-			request:  req,
+			Request:  req,
 			response: res,
 			Params:   params,
 		}
@@ -88,7 +88,7 @@ func (router Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		ctx.WriteHeader("access-control-allow-methods", group.allowedMethods())
 		ctx.WriteHeader("access-control-allow-headers", "authorization, content-type")
 		for _, origin := range router.allowedOrigins {
-			if origin == "*" || origin == ctx.ReadHeader("origin") {
+			if origin == "*" || origin == ctx.Request.Header.Get("origin") {
 				ctx.WriteHeader("access-control-allow-origin", origin)
 				break
 			}

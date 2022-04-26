@@ -22,14 +22,14 @@ func (router *Router) InitStripeEventHandling(config StripeEventHandlingConfig) 
 	client := assert.Must(cloudtasks.NewClient(context.Background()))
 
 	router.Post("/stripe/events", func(ctx Context) int {
-		payload := ctx.ReadBytes()
-		signature := ctx.request.Header.Get("Stripe-Signature")
+		payload := ctx.RequestBodyAsBytes()
+		signature := ctx.Request.Header.Get("Stripe-Signature")
 		event, err := webhook.ConstructEvent(payload, signature, config.StripeWebhookSecret)
 		if err != nil {
 			return http.StatusUnauthorized
 		}
 
-		url := "https://" + ctx.request.Host + pathFromEvent(event.Type)
+		url := "https://" + ctx.Request.Host + pathFromEvent(event.Type)
 		task := tasks.CreateTaskRequest{
 			Parent: fmt.Sprintf(
 				"projects/%s/locations/%s/queues/stripe-events",
