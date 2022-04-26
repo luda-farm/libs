@@ -30,18 +30,8 @@ func (ctx Context) ReadBytes() []byte {
 	return assert.Must(ioutil.ReadAll(ctx.request.Body))
 }
 
-// Writes error message to response body
 func (ctx Context) ReadJson(body any) bool {
-	if !strings.HasPrefix(ctx.ReadHeader("content-type"), "application/json") {
-		ctx.Error(http.StatusBadRequest, "expected content-type application/json")
-		return false
-	}
-
-	if json.Unmarshal(ctx.ReadBytes(), body) != nil {
-		ctx.Error(http.StatusBadRequest, "failed to parse json")
-		return false
-	}
-	return true
+	return nil == json.Unmarshal(ctx.ReadBytes(), body)
 }
 
 func (ctx *Context) WriteCsv(body []byte) {
