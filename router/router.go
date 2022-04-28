@@ -11,13 +11,12 @@ import (
 )
 
 const (
-	Retry   = -1
-	retries = 2
+	Retry = -1
 )
 
 type (
 	// Return status < 100 to trigger a retry
-	Handler func(ctx Context) int
+	Handler func(ctx *Context) int
 
 	Router struct {
 		allowedOrigins []string
@@ -27,6 +26,10 @@ type (
 	handlerGroup struct {
 		delete, get, post, put Handler
 	}
+)
+
+var (
+	MaxRetries int
 )
 
 func New() Router {
@@ -84,12 +87,13 @@ func (router Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		}
 
 		// Handle CORS
-		ctx.WriteHeader("vary", "origin")
-		ctx.WriteHeader("access-control-allow-methods", group.allowedMethods())
-		ctx.WriteHeader("access-control-allow-headers", "authorization, content-type")
+		res.Header().Set("vary", "origin")
+		res.Header().Set("access-control-allow-methods", group.allowedMethods())
+		res.Header().Add("access-control-allow-headers", "authorization")
+		res.Header().Add("access-control-allow-headers", "content-type")
 		for _, origin := range router.allowedOrigins {
 			if origin == "*" || origin == ctx.Request.Header.Get("origin") {
-				ctx.WriteHeader("access-control-allow-origin", origin)
+				res.Header().Set("access-control-allow-origin", origin)
 				break
 			}
 		}
@@ -104,8 +108,8 @@ func (router Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 			break
 		}
 
-		for i := 0; i < retries; i++ {
-			status := handler(ctx)
+		for i := 0; i <= MaxRetries; i++ {
+			status := handler(&ctx)
 			if status == Retry {
 				// random back off up to 100 ms
 				time.Sleep(time.Duration(rand.Intn(1e8)))

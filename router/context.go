@@ -30,11 +30,6 @@ func (ctx Context) RequestBodyAsJson(body any) bool {
 	return nil == json.Unmarshal(ctx.RequestBodyAsBytes(), body)
 }
 
-func (ctx *Context) WriteCsv(body []byte) {
-	ctx.WriteHeader("content-type", "text/csv; charset=UTF-8")
-	ctx.body = body
-}
-
 func (ctx *Context) Error(status int, msg string) int {
 	if status < 400 || status > 599 {
 		panic("call to 'Context.Error' with non-error status code")
@@ -49,17 +44,6 @@ func (ctx *Context) Error(status int, msg string) int {
 	return status
 }
 
-func (ctx Context) WriteHeader(key, value string) {
-	ctx.response.Header().Set(key, value)
-}
-
-func (ctx Context) WriteJson(body any) {
-	ctx.WriteHeader("Content-Type", "application/json; charset=UTF-8")
-	data := assert.Must(json.Marshal(body))
-	ctx.body = data
-}
-
-func (ctx Context) WriteZip(body []byte) {
-	ctx.WriteHeader("Content-Type", "application/zip")
-	ctx.body = body
+func (ctx *Context) WriteJson(body any) {
+	ctx.body = assert.Must(json.Marshal(body))
 }
