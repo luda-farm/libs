@@ -22,12 +22,8 @@ func (ctx Context) BearerToken() string {
 	return strings.TrimPrefix(ctx.Request.Header.Get("authorization"), "Bearer ")
 }
 
-func (ctx Context) RequestBodyAsBytes() []byte {
-	return assert.Must(io.ReadAll(ctx.Request.Body))
-}
-
-func (ctx Context) RequestBodyAsJson(body any) bool {
-	return nil == json.Unmarshal(ctx.RequestBodyAsBytes(), body)
+func (ctx Context) RequestBody() []byte {
+	return assert.MustChain(io.ReadAll(ctx.Request.Body))
 }
 
 func (ctx *Context) Error(status int, msg string) int {
@@ -45,5 +41,5 @@ func (ctx *Context) Error(status int, msg string) int {
 }
 
 func (ctx *Context) WriteJson(body any) {
-	ctx.body = assert.Must(json.Marshal(body))
+	ctx.body = assert.MustChain(json.Marshal(body))
 }

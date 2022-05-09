@@ -19,12 +19,14 @@ type (
 )
 
 func (router *Router) InitStripeEventHandling(config StripeEventHandlingConfig) {
-	client := assert.Must(cloudtasks.NewClient(context.Background()))
+	client := assert.MustChain(cloudtasks.NewClient(context.Background()))
 
 	router.Post("/stripe/events", func(ctx *Context) int {
-		payload := ctx.RequestBodyAsBytes()
-		signature := ctx.Request.Header.Get("Stripe-Signature")
-		event, err := webhook.ConstructEvent(payload, signature, config.StripeWebhookSecret)
+		event, err := webhook.ConstructEvent(
+			ctx.RequestBody(),
+			ctx.Request.Header.Get("stripe-signature"),
+			config.StripeWebhookSecret,
+		)
 		if err != nil {
 			return http.StatusUnauthorized
 		}
@@ -46,7 +48,7 @@ func (router *Router) InitStripeEventHandling(config StripeEventHandlingConfig) 
 			},
 		}
 
-		assert.Must(client.CreateTask(context.Background(), &task))
+		assert.MustChain(client.CreateTask(context.Background(), &task))
 		return http.StatusNoContent
 	})
 }
