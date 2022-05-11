@@ -6,15 +6,7 @@ import (
 )
 
 type (
-	message struct {
-		subject    string
-		body       string
-		recipients []string
-	}
-
-	loginAuth struct {
-		username, password string
-	}
+	loginAuth struct{}
 )
 
 var (
@@ -24,26 +16,17 @@ var (
 	Password string
 )
 
-func NewMessage(subject, body, recipient string, additionalRecipients ...string) message {
-	return message{
-		subject:    subject,
-		body:       body,
-		recipients: append(additionalRecipients, recipient),
-	}
-}
-
-func (msg message) Send() error {
+func Send(subject, body, recipient string, additionalRecipients ...string) error {
 	addr := fmt.Sprintf("%s:%d", Host, Port)
-	auth := loginAuth{
-		username: Username,
-		password: Password,
-	}
-	body := "MIME-version: 1.0\n" + `Content-Type: text/html; charset="UTF-8";` + "\r\n"
-	body += fmt.Sprintf("From: %s\r\n", Username)
-	body += fmt.Sprintf("To: %s\r\n", Username)
-	body += fmt.Sprintf("Subject: %s\r\n", msg.subject)
-	body += fmt.Sprintf("\r\n%s\r\n", msg.body)
-	return smtp.SendMail(addr, auth, Username, msg.recipients, []byte(body))
+	content := "MIME-version: 1.0\n" + `Content-Type: text/html; charset="UTF-8";` + "\r\n"
+	content += fmt.Sprintf("From: %s\r\n", Username)
+	content += fmt.Sprintf("To: %s\r\n", Username)
+	content += fmt.Sprintf("Subject: %s\r\n", subject)
+	content += fmt.Sprintf("\r\n%s\r\n", body)
+	return smtp.SendMail(
+		addr, loginAuth{}, Username,
+		append(additionalRecipients, recipient), []byte(content),
+	)
 }
 
 func (auth loginAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
@@ -57,9 +40,9 @@ func (auth loginAuth) Next(cmd []byte, more bool) ([]byte, error) {
 
 	switch string(cmd) {
 	case "Username:":
-		return []byte(auth.username), nil
+		return []byte(Username), nil
 	case "Password:":
-		return []byte(auth.password), nil
+		return []byte(Password), nil
 	default:
 		return nil, fmt.Errorf("unknown cmd '%s' in login auth", string(cmd))
 	}
