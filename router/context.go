@@ -11,10 +11,10 @@ import (
 
 type (
 	Context struct {
-		Request  *http.Request
-		response http.ResponseWriter
-		body     []byte
-		Params   map[string]string
+		Request      *http.Request
+		response     http.ResponseWriter
+		ResponseBody []byte
+		Params       map[string]string
 	}
 )
 
@@ -41,5 +41,5 @@ func (ctx *Context) Error(status int, msg string) int {
 }
 
 func (ctx *Context) WriteJson(body any) {
-	ctx.body = assert.MustChain(json.Marshal(body))
+	ctx.ResponseBody = assert.MustChain(json.Marshal(body))
 }

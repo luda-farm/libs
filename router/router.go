@@ -118,7 +118,7 @@ func (router Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 			res.WriteHeader(status)
 			if status != http.StatusNoContent {
-				res.Write(ctx.body)
+				res.Write(ctx.ResponseBody)
 			}
 			return
 		}
