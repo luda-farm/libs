@@ -16,12 +16,6 @@ type (
 	}
 )
 
-func (ctx Context) CheckClientError(err error, status int) {
-	if err != nil {
-		panic(clientError{Cause: err.Error(), Status: status})
-	}
-}
-
 func errorHandler(res http.ResponseWriter) {
 	switch err := recover().(type) {
 	case nil:

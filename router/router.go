@@ -13,11 +13,6 @@ type (
 		handlers       map[string]map[string]Handler
 	}
 	Handler func(ctx Context)
-	Context struct {
-		Response http.ResponseWriter
-		Request  *http.Request
-		Params   map[string]string
-	}
 )
 
 func New() Router {
