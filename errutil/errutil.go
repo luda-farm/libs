@@ -1,4 +1,4 @@
-package errorutil
+package errutil
 
 func Check(e error) {
 	if e != nil {
