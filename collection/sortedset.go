@@ -7,12 +7,14 @@ import (
 
 type SortedSet[T constraints.Ordered] []T
 
-func (set *SortedSet[T]) Add(t T) {
+// returns whether the set was modified
+func (set *SortedSet[T]) Add(t T) bool {
 	i, ok := slices.BinarySearch(*set, t)
 	if ok {
-		return
+		return false
 	}
 	*set = slices.Insert(*set, i, t)
+	return true
 }
 
 func (set SortedSet[T]) Complement(other SortedSet[T]) SortedSet[T] {
@@ -52,12 +54,14 @@ func (set SortedSet[T]) Intersection(other SortedSet[T]) SortedSet[T] {
 	return intersection
 }
 
-func (set *SortedSet[T]) Remove(t T) {
+// returns whether the set was modified
+func (set *SortedSet[T]) Remove(t T) bool {
 	i, ok := slices.BinarySearch(*set, t)
 	if !ok {
-		return
+		return false
 	}
 	*set = append((*set)[:i], (*set)[i+1:]...)
+	return true
 }
 
 func (set SortedSet[T]) Union(other SortedSet[T]) SortedSet[T] {
