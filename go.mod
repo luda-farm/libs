@@ -8,6 +8,8 @@ require (
 	google.golang.org/genproto v0.0.0-20220401170504-314d38edb7de
 )
 
+require golang.org/x/term v0.0.0-20220526004731-065cf7ba2467
+
 require (
 	cloud.google.com/go/compute v1.3.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect

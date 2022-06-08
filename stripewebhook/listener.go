@@ -1,4 +1,4 @@
-package stripelistener
+package stripewebhook
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 )
 
 // Returns a handler that creates cloudtasks routed to "/stripe/:event_type/:event_subtype/..."
-func EventListener(gcpProject, gcpLocation, webhookSecret string) http.HandlerFunc {
+func NewListener(gcpProject, gcpLocation, webhookSecret string) http.HandlerFunc {
 	client := errutil.Must(cloudtasks.NewClient(context.Background()))
 	return func(w http.ResponseWriter, r *http.Request) {
 		event := errutil.Must(webhook.ConstructEvent(
