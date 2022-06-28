@@ -8,17 +8,17 @@ import (
 	"strings"
 
 	cloudtasks "cloud.google.com/go/cloudtasks/apiv2"
-	"github.com/luda-farm/libs/errutil"
+	"github.com/luda-farm/libs/std"
 	"github.com/stripe/stripe-go/v72/webhook"
 	"google.golang.org/genproto/googleapis/cloud/tasks/v2"
 )
 
 // Returns a handler that creates cloudtasks routed to "/stripe/:event_type/:event_subtype/..."
 func NewListener(gcpProject, gcpLocation, webhookSecret string) http.HandlerFunc {
-	client := errutil.Must(cloudtasks.NewClient(context.Background()))
+	client := std.Must(cloudtasks.NewClient(context.Background()))
 	return func(w http.ResponseWriter, r *http.Request) {
-		event := errutil.Must(webhook.ConstructEvent(
-			errutil.Must(io.ReadAll(r.Body)),
+		event := std.Must(webhook.ConstructEvent(
+			std.Must(io.ReadAll(r.Body)),
 			r.Header.Get("stripe-signature"),
 			webhookSecret,
 		))
@@ -38,7 +38,7 @@ func NewListener(gcpProject, gcpLocation, webhookSecret string) http.HandlerFunc
 				},
 			},
 		}
-		errutil.Must(client.CreateTask(context.Background(), &task))
+		std.Must(client.CreateTask(context.Background(), &task))
 		w.WriteHeader(http.StatusNoContent)
 	}
 }

@@ -1,4 +1,4 @@
-package errutil
+package std
 
 func Check(e error) {
 	if e != nil {

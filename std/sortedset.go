@@ -1,4 +1,4 @@
-package collection
+package std
 
 import (
 	"golang.org/x/exp/constraints"

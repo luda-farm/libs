@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/luda-farm/libs/errutil"
+	"github.com/luda-farm/libs/std"
 	"golang.org/x/term"
 )
 
@@ -25,10 +25,10 @@ func init() {
 }
 
 func Listen(callback func(string)) {
-	defer term.Restore(int(os.Stdin.Fd()), errutil.Must(term.MakeRaw(int(os.Stdin.Fd()))))
+	defer term.Restore(int(os.Stdin.Fd()), std.Must(term.MakeRaw(int(os.Stdin.Fd()))))
 	buffer := make([]byte, 1)
 	for {
-		errutil.Must(os.Stdin.Read(buffer))
+		std.Must(os.Stdin.Read(buffer))
 		switch buffer[0] {
 		case 3, 4: // C-c, C-d
 			return
@@ -39,10 +39,10 @@ func Listen(callback func(string)) {
 			resetCursor()
 			callback(history[1])
 		case 27: // \033
-			errutil.Must(os.Stdin.Read(buffer))
+			std.Must(os.Stdin.Read(buffer))
 			switch buffer[0] {
 			case 91: // [
-				errutil.Must(os.Stdin.Read(buffer))
+				std.Must(os.Stdin.Read(buffer))
 				switch buffer[0] {
 				case 65: // Up
 					if index < len(history)-1 {
