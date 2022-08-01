@@ -13,7 +13,7 @@ import (
 	"google.golang.org/genproto/googleapis/cloud/tasks/v2"
 )
 
-// Returns a handler that creates cloudtasks routed to "/stripe/:event_type/:event_subtype/..."
+// Returns a handler that creates cloudtasks with target POST /stripe/:event_type/:event_subtype/...
 func NewListener(gcpProject, gcpLocation, webhookSecret string) http.HandlerFunc {
 	client := std.Must(cloudtasks.NewClient(context.Background()))
 	return func(w http.ResponseWriter, r *http.Request) {

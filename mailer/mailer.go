@@ -3,6 +3,8 @@ package mailer
 import (
 	"fmt"
 	"net/smtp"
+
+	"github.com/luda-farm/libs/std"
 )
 
 type (
@@ -15,6 +17,10 @@ var (
 	Username string
 	Password string
 )
+
+func MustSend(subject, body, recipient string, additionalRecipients ...string) {
+	std.Check(Send(subject, body, recipient, additionalRecipients...))
+}
 
 func Send(subject, body, recipient string, additionalRecipients ...string) error {
 	addr := fmt.Sprintf("%s:%d", Host, Port)
