@@ -1,4 +1,4 @@
-package stripewebhook
+package stripeevent
 
 import (
 	"context"
@@ -13,20 +13,31 @@ import (
 	"google.golang.org/genproto/googleapis/cloud/tasks/v2"
 )
 
-// Returns a handler that creates cloudtasks with target POST /stripe/:event_type/:event_subtype/...
-func NewListener(gcpProject, gcpLocation, webhookSecret string) http.HandlerFunc {
+type EventListenerBuilder struct {
+	GcpProject          string
+	GcpLocation         string
+	GcpServiceAccount   string
+	OidcAudience        string
+	StripeWebhookSecret string
+}
+
+// Returns a handler that creates cloudtasks from Stripe events.
+// The tasks target "POST /stripe/:event_type/:event_subtype/..."
+// and the task body contains the event data.
+func (config EventListenerBuilder) Build() http.HandlerFunc {
 	client := std.Must(cloudtasks.NewClient(context.Background()))
 	return func(w http.ResponseWriter, r *http.Request) {
 		event := std.Must(webhook.ConstructEvent(
 			std.Must(io.ReadAll(r.Body)),
 			r.Header.Get("stripe-signature"),
-			webhookSecret,
+			config.StripeWebhookSecret,
 		))
+
 		url := "https://" + r.Host + "/stripe/" + strings.Join(strings.Split(event.Type, "."), "/")
 		task := tasks.CreateTaskRequest{
 			Parent: fmt.Sprintf(
 				"projects/%s/locations/%s/queues/stripe-events",
-				gcpProject, gcpLocation,
+				config.GcpProject, config.GcpLocation,
 			),
 			Task: &tasks.Task{
 				MessageType: &tasks.Task_HttpRequest{
@@ -34,6 +45,12 @@ func NewListener(gcpProject, gcpLocation, webhookSecret string) http.HandlerFunc
 						HttpMethod: tasks.HttpMethod_POST,
 						Url:        url,
 						Body:       event.Data.Raw,
+						AuthorizationHeader: &tasks.HttpRequest_OidcToken{
+							OidcToken: &tasks.OidcToken{
+								Audience:            config.OidcAudience,
+								ServiceAccountEmail: config.GcpServiceAccount,
+							},
+						},
 					},
 				},
 			},

@@ -1,4 +1,4 @@
-package httprouterdefaults
+package httputil
 
 import (
 	"fmt"
