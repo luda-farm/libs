@@ -8,29 +8,48 @@ import (
 )
 
 type (
-	loginAuth struct{}
+	Mailer struct {
+		host     string
+		port     int
+		username string
+		password string
+	}
+
+	MailerConfig struct {
+		Host     string
+		Port     int
+		Username string
+		Password string
+	}
+
+	loginAuth struct {
+		username string
+		password string
+	}
 )
 
-var (
-	Host     string
-	Port     int
-	Username string
-	Password string
-)
-
-func MustSend(subject, body, recipient string, additionalRecipients ...string) {
-	std.Check(Send(subject, body, recipient, additionalRecipients...))
+func NewMailer(config MailerConfig) Mailer {
+	return Mailer{
+		host:     config.Host,
+		port:     config.Port,
+		username: config.Username,
+		password: config.Password,
+	}
 }
 
-func Send(subject, body, recipient string, additionalRecipients ...string) error {
-	addr := fmt.Sprintf("%s:%d", Host, Port)
+func (mailer Mailer) MustSend(subject, body, recipient string, additionalRecipients ...string) {
+	std.Check(mailer.Send(subject, body, recipient, additionalRecipients...))
+}
+
+func (conf Mailer) Send(subject, body, recipient string, additionalRecipients ...string) error {
+	addr := fmt.Sprintf("%s:%d", conf.host, conf.port)
 	content := "MIME-version: 1.0\n" + `Content-Type: text/html; charset="UTF-8";` + "\r\n"
-	content += fmt.Sprintf("From: %s\r\n", Username)
-	content += fmt.Sprintf("To: %s\r\n", Username)
+	content += fmt.Sprintf("From: %s\r\n", conf.username)
+	content += fmt.Sprintf("To: %s\r\n", conf.username)
 	content += fmt.Sprintf("Subject: %s\r\n", subject)
 	content += fmt.Sprintf("\r\n%s\r\n", body)
 	return smtp.SendMail(
-		addr, loginAuth{}, Username,
+		addr, loginAuth{username: conf.username, password: conf.password}, conf.username,
 		append(additionalRecipients, recipient), []byte(content),
 	)
 }
@@ -46,9 +65,9 @@ func (auth loginAuth) Next(cmd []byte, more bool) ([]byte, error) {
 
 	switch string(cmd) {
 	case "Username:":
-		return []byte(Username), nil
+		return []byte(auth.username), nil
 	case "Password:":
-		return []byte(Password), nil
+		return []byte(auth.password), nil
 	default:
 		return nil, fmt.Errorf("unknown cmd '%s' in login auth", string(cmd))
 	}

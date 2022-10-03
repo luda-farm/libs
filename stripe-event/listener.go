@@ -13,7 +13,7 @@ import (
 	"google.golang.org/genproto/googleapis/cloud/tasks/v2"
 )
 
-type EventListenerBuilder struct {
+type EventListenerConfig struct {
 	GcpProject          string
 	GcpLocation         string
 	GcpServiceAccount   string
@@ -24,7 +24,7 @@ type EventListenerBuilder struct {
 // Returns a handler that creates cloudtasks from Stripe events.
 // The tasks target "POST /stripe/:event_type/:event_subtype/..."
 // and the task body contains the event data.
-func (config EventListenerBuilder) Build() http.HandlerFunc {
+func NewEventListener(config EventListenerConfig) http.HandlerFunc {
 	client := std.Must(cloudtasks.NewClient(context.Background()))
 	return func(w http.ResponseWriter, r *http.Request) {
 		event := std.Must(webhook.ConstructEvent(
