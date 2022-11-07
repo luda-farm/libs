@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	cloudtasks "cloud.google.com/go/cloudtasks/apiv2"
+	cloudtasks "cloud.google.com/go/cloudtasks/apiv2beta3"
+	"cloud.google.com/go/cloudtasks/apiv2beta3/cloudtaskspb"
 	"github.com/luda-farm/libs/std"
 	"github.com/stripe/stripe-go/v72/webhook"
-	"google.golang.org/genproto/googleapis/cloud/tasks/v2"
 )
 
 type EventListenerConfig struct {
@@ -34,19 +34,19 @@ func NewEventListener(config EventListenerConfig) http.HandlerFunc {
 		))
 
 		url := "https://" + r.Host + "/stripe/" + strings.Join(strings.Split(event.Type, "."), "/")
-		task := tasks.CreateTaskRequest{
+		task := cloudtaskspb.CreateTaskRequest{
 			Parent: fmt.Sprintf(
 				"projects/%s/locations/%s/queues/stripe-events",
 				config.GcpProject, config.GcpLocation,
 			),
-			Task: &tasks.Task{
-				MessageType: &tasks.Task_HttpRequest{
-					HttpRequest: &tasks.HttpRequest{
-						HttpMethod: tasks.HttpMethod_POST,
+			Task: &cloudtaskspb.Task{
+				PayloadType: &cloudtaskspb.Task_HttpRequest{
+					HttpRequest: &cloudtaskspb.HttpRequest{
+						HttpMethod: cloudtaskspb.HttpMethod_POST,
 						Url:        url,
 						Body:       event.Data.Raw,
-						AuthorizationHeader: &tasks.HttpRequest_OidcToken{
-							OidcToken: &tasks.OidcToken{
+						AuthorizationHeader: &cloudtaskspb.HttpRequest_OidcToken{
+							OidcToken: &cloudtaskspb.OidcToken{
 								Audience:            config.OidcAudience,
 								ServiceAccountEmail: config.GcpServiceAccount,
 							},
