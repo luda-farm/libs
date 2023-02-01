@@ -1,4 +1,4 @@
-package stripeevent
+package gcp
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/stripe/stripe-go/v72/webhook"
 )
 
-type EventListenerConfig struct {
+type StripeEventListenerConfig struct {
 	GcpProject          string
 	GcpLocation         string
 	GcpServiceAccount   string
@@ -24,7 +24,7 @@ type EventListenerConfig struct {
 // Returns a handler that creates cloudtasks from Stripe events.
 // The tasks target "POST /stripe/:event_type/:event_subtype/..."
 // and the task body contains the event data.
-func NewEventListener(config EventListenerConfig) http.HandlerFunc {
+func StripeEventListener(config StripeEventListenerConfig) http.HandlerFunc {
 	client := std.Must(cloudtasks.NewClient(context.Background()))
 	return func(w http.ResponseWriter, r *http.Request) {
 		event := std.Must(webhook.ConstructEvent(
