@@ -3,8 +3,6 @@ package mailer
 import (
 	"fmt"
 	"net/smtp"
-
-	"github.com/luda-farm/libs/std"
 )
 
 type (
@@ -35,10 +33,6 @@ func NewMailer(config MailerConfig) Mailer {
 		username: config.Username,
 		password: config.Password,
 	}
-}
-
-func (mailer Mailer) MustSend(subject, body, recipient string, additionalRecipients ...string) {
-	std.Check(mailer.Send(subject, body, recipient, additionalRecipients...))
 }
 
 func (conf Mailer) Send(subject, body, recipient string, additionalRecipients ...string) error {

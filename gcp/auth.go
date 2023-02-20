@@ -3,14 +3,18 @@ package gcp
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
-	"github.com/luda-farm/libs/std"
 	"google.golang.org/api/idtoken"
 )
 
 func ValidateToken(ctx context.Context, token, audience, serviceAccount string) error {
-	validator := std.Must(idtoken.NewValidator(ctx))
+	validator, err := idtoken.NewValidator(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create idtoken validator: %w", err)
+	}
+
 	payload, err := validator.Validate(ctx, token, audience)
 	switch {
 	case err != nil:
