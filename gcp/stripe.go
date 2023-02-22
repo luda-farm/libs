@@ -9,7 +9,7 @@ import (
 
 	cloudtasks "cloud.google.com/go/cloudtasks/apiv2beta3"
 	"cloud.google.com/go/cloudtasks/apiv2beta3/cloudtaskspb"
-	"github.com/luda-farm/libs/logger"
+	"github.com/luda-farm/libs/assert"
 	"github.com/stripe/stripe-go/v72/webhook"
 )
 
@@ -32,20 +32,14 @@ func StripeEventListener(config StripeEventListenerConfig) (http.HandlerFunc, er
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			logger.InternalServerError(w, r, "reading request body: %w", err)
-			return
-		}
+		assert.Nil(err)
 
 		event, err := webhook.ConstructEvent(
 			body,
 			r.Header.Get("stripe-signature"),
 			config.StripeWebhookSecret,
 		)
-		if err != nil {
-			logger.InternalServerError(w, r, "constructing stripe webhook event: %w", err)
-			return
-		}
+		assert.Nil(err)
 
 		url := "https://" + r.Host + "/stripe/" + strings.Join(strings.Split(event.Type, "."), "/")
 		task := cloudtaskspb.CreateTaskRequest{
@@ -71,10 +65,7 @@ func StripeEventListener(config StripeEventListenerConfig) (http.HandlerFunc, er
 		}
 
 		_, err = client.CreateTask(r.Context(), &task)
-		if err != nil {
-			logger.InternalServerError(w, r, "creating cloudtask: %w", err)
-			return
-		}
+		assert.Nil(err)
 
 		w.WriteHeader(http.StatusNoContent)
 	}, nil
