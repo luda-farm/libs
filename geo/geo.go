@@ -4,7 +4,7 @@ import "github.com/luda-farm/libs/std"
 
 var (
 	EuropeanUnion = std.SortedSet[string]{
-		"AT", "AX", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FO", "FR", "GL", "GR",
+		"AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FO", "FR", "GL", "GR",
 		"HR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SI", "SK",
 	}
 
