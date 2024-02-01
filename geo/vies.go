@@ -2,7 +2,6 @@ package geo
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,10 +12,14 @@ type viesResponse struct {
 }
 
 func IsValidVatin(vatin string) (bool, error) {
-	url, err := newViesUrl(vatin)
-	if err != nil {
-		return false, fmt.Errorf("creating vies url: %w", err)
+	if len(vatin) < 3 {
+		return false, nil
 	}
+
+	url := fmt.Sprintf(
+		"https://ec.europa.eu/taxation_customs/vies/rest-api/ms/%s/vat/%s?requesterMemberStateCode=SE&requesterNumber=556690395001",
+		vatin[0:2], vatin[2:],
+	)
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
@@ -43,17 +46,4 @@ func IsValidVatin(vatin string) (bool, error) {
 	}
 
 	return parsedResponse.IsValid, nil
-}
-
-func newViesUrl(vatin string) (string, error) {
-	if len(vatin) < 3 {
-		return "", errors.New("invalid vatin")
-	}
-
-	url := fmt.Sprintf(
-		"https://ec.europa.eu/taxation_customs/vies/rest-api/ms/%s/vat/%s?requesterMemberStateCode=SE&requesterNumber=556690395001",
-		vatin[0:2], vatin[2:],
-	)
-
-	return url, nil
 }
