@@ -8,7 +8,8 @@ import (
 )
 
 type viesResponse struct {
-	IsValid bool `json:"isValid"`
+	IsValid   bool   `json:"isValid"`
+	UserError string `json:"userError"`
 }
 
 func IsValidVatin(vatin string) (bool, error) {
@@ -43,6 +44,10 @@ func IsValidVatin(vatin string) (bool, error) {
 	var parsedResponse viesResponse
 	if err := json.Unmarshal(resBody, &parsedResponse); err != nil {
 		return false, fmt.Errorf("parsing response: %w", err)
+	}
+
+	if parsedResponse.UserError != "VALID" {
+		return false, fmt.Errorf("vies error: %s", parsedResponse.UserError)
 	}
 
 	return parsedResponse.IsValid, nil
