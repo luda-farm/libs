@@ -1,21 +1,27 @@
 package gcp
 
 import (
-	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
 	"google.golang.org/api/idtoken"
 )
 
-func ValidateToken(ctx context.Context, token, audience, serviceAccount string) error {
-	validator, err := idtoken.NewValidator(ctx)
+func ValidateToken(r *http.Request, serviceAccount string) error {
+	validator, err := idtoken.NewValidator(r.Context())
 	if err != nil {
 		return fmt.Errorf("failed to create idtoken validator: %w", err)
 	}
 
-	payload, err := validator.Validate(ctx, token, audience)
+	authHeader := r.Header.Get("authorization")
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+
+	audience := r.URL.String()
+
+	payload, err := validator.Validate(r.Context(), token, audience)
 	switch {
 	case err != nil:
 		return errors.New("invalid token")

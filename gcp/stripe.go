@@ -17,7 +17,6 @@ type StripeEventListenerConfig struct {
 	GcpProject          string
 	GcpLocation         string
 	GcpServiceAccount   string
-	OidcAudience        string
 	StripeWebhookSecret string
 }
 
@@ -30,7 +29,7 @@ func StripeEventListener(config StripeEventListenerConfig) (http.HandlerFunc, er
 		return nil, fmt.Errorf("creating cloudtasks client: %w", err)
 	}
 
-	return func(w http.ResponseWriter, r *http.Request) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
 		assert.Nil(err)
 
@@ -55,7 +54,6 @@ func StripeEventListener(config StripeEventListenerConfig) (http.HandlerFunc, er
 						Body:       event.Data.Raw,
 						AuthorizationHeader: &cloudtaskspb.HttpRequest_OidcToken{
 							OidcToken: &cloudtaskspb.OidcToken{
-								Audience:            config.OidcAudience,
 								ServiceAccountEmail: config.GcpServiceAccount,
 							},
 						},
@@ -68,5 +66,7 @@ func StripeEventListener(config StripeEventListenerConfig) (http.HandlerFunc, er
 		assert.Nil(err)
 
 		w.WriteHeader(http.StatusNoContent)
-	}, nil
+	}
+
+	return handler, nil
 }
