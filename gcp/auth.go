@@ -24,7 +24,7 @@ func ValidateToken(r *http.Request, serviceAccount string) error {
 	payload, err := validator.Validate(r.Context(), token, audience)
 	switch {
 	case err != nil:
-		return errors.New("invalid token")
+		return fmt.Errorf("validating token: %w", err)
 	case payload.Expires < time.Now().Unix():
 		return errors.New("expired token")
 	case payload.Issuer != "https://accounts.google.com":
