@@ -19,7 +19,7 @@ func ValidateToken(r *http.Request, serviceAccount string) error {
 	authHeader := r.Header.Get("authorization")
 	token := strings.TrimPrefix(authHeader, "Bearer ")
 
-	audience := r.URL.String()
+	audience := "https://" + r.Host + r.URL.Path
 
 	payload, err := validator.Validate(r.Context(), token, audience)
 	switch {
