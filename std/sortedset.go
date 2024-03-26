@@ -28,8 +28,18 @@ func (set *SortedSet[T]) AddAll(t []T) bool {
 	return modified
 }
 
+// returns whether the set was modified
+func (set *SortedSet[T]) Remove(t T) bool {
+	i, ok := slices.BinarySearch(*set, t)
+	if !ok {
+		return false
+	}
+	*set = append((*set)[:i], (*set)[i+1:]...)
+	return true
+}
+
 func (set SortedSet[T]) Complement(other SortedSet[T]) SortedSet[T] {
-	complement := SortedSet[T]{}
+	var complement SortedSet[T]
 	for i, j := 0, 0; i < len(set) && j < len(other); {
 		if set[i] < other[j] {
 			complement = append(complement, set[i])
@@ -50,7 +60,7 @@ func (set SortedSet[T]) Contains(t T) bool {
 }
 
 func (set SortedSet[T]) Intersection(other SortedSet[T]) SortedSet[T] {
-	intersection := SortedSet[T]{}
+	var intersection SortedSet[T]
 	for i, j := 0, 0; i < len(set) && j < len(other); {
 		if set[i] < other[j] {
 			i++
@@ -65,23 +75,19 @@ func (set SortedSet[T]) Intersection(other SortedSet[T]) SortedSet[T] {
 	return intersection
 }
 
-// returns whether the set was modified
-func (set *SortedSet[T]) Remove(t T) bool {
-	i, ok := slices.BinarySearch(*set, t)
-	if !ok {
-		return false
-	}
-	*set = append((*set)[:i], (*set)[i+1:]...)
-	return true
-}
-
 func (set SortedSet[T]) Union(other SortedSet[T]) SortedSet[T] {
 	if len(set) < len(other) {
 		set, other = other, set
 	}
-	union := append(SortedSet[T]{}, set...)
+	union := SliceToSortedSet(set)
 	for _, t := range other {
 		union.Add(t)
 	}
 	return union
+}
+
+func SliceToSortedSet[T constraints.Ordered](s []T) SortedSet[T] {
+	var set SortedSet[T]
+	set.AddAll(s)
+	return set
 }
