@@ -17,6 +17,17 @@ func (set *SortedSet[T]) Add(t T) bool {
 	return true
 }
 
+// returns whether the set was modified
+func (set *SortedSet[T]) AddAll(t []T) bool {
+	modified := false
+	for _, element := range t {
+		if set.Add(element) {
+			modified = true
+		}
+	}
+	return modified
+}
+
 func (set SortedSet[T]) Complement(other SortedSet[T]) SortedSet[T] {
 	complement := SortedSet[T]{}
 	for i, j := 0, 0; i < len(set) && j < len(other); {
