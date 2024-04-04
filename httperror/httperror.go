@@ -1,6 +1,7 @@
 package httperror
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/luda-farm/libs/std"
@@ -35,7 +36,12 @@ func handlePanic(w http.ResponseWriter) {
 	case nil:
 	case httpError:
 		err.Write(w)
+	case error:
+		fmt.Printf("[ERROR] %s\n", err.Error())
+		std.PrintLocalStackTrace()
+		w.WriteHeader(http.StatusInternalServerError)
 	default:
+		fmt.Printf("[ERROR] %v\n", err)
 		std.PrintLocalStackTrace()
 		w.WriteHeader(http.StatusInternalServerError)
 	}
