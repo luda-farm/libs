@@ -1,6 +1,6 @@
 module github.com/luda-farm/libs
 
-go 1.18
+go 1.25
 
 require (
 	cloud.google.com/go/cloudtasks v1.9.0
