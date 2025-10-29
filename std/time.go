@@ -1,18 +1,16 @@
 package std
 
 import (
-	"fmt"
 	"time"
 )
 
-func FirstOfNextMonth() time.Time {
-	now := time.Now()
-	year := now.Year() + int(now.Month())/12
-	month := now.Month()%12 + 1
-	date, err := time.Parse("20061", fmt.Sprintf("%d%d", year, month))
-	if err != nil {
-		panic(err)
-	}
+func FirstOfCurrentMonthUtc() time.Time {
+	now := time.Now().In(time.UTC)
+	year, month, _ := now.Date()
+	return time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
+}
 
-	return date
+func FirstOfNextMonthUtc() time.Time {
+	firstOfCurrentMonth := FirstOfCurrentMonthUtc()
+	return firstOfCurrentMonth.AddDate(0, 1, 0)
 }
